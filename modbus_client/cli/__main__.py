@@ -1,18 +1,18 @@
-import os
-import asyncio
 import argparse
+import asyncio
 import datetime
+import os
 from dataclasses import dataclass
 from typing import Tuple, Any, Optional, List, Sequence, cast, Callable, Union, Dict
 
-from modbus_client.async_modbus_client import AsyncModbusClient
-from modbus_client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient, PyAsyncModbusRtuClient
-from modbus_client.registers import IRegister
-from modbus_client.types import ModbusReadSession
-from cli.argument_parsers import interval_parser, mode_parser, ModeTupleType
-from modbus_device.device_config import DeviceHoldingRegister, DeviceSwitch, DeviceConfig, DeviceInputRegister, IDeviceRegister
-from cli.system_file import load_system_config
-from modbus_device.modbus_device import create_modbus_register, ModbusDevice, create_modbus_coil
+from modbus_client.cli.argument_parsers import interval_parser, mode_parser, ModeTupleType
+from modbus_client.cli.system_file import load_system_config
+from modbus_client.client.async_modbus_client import AsyncModbusClient
+from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient, PyAsyncModbusRtuClient
+from modbus_client.client.registers import IRegister
+from modbus_client.client.types import ModbusReadSession
+from modbus_client.device.device_config import DeviceHoldingRegister, DeviceSwitch, DeviceConfig, DeviceInputRegister, IDeviceRegister
+from modbus_client.device.modbus_device import create_modbus_register, ModbusDevice, create_modbus_coil
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 root_dir = os.path.join(script_dir, "..")

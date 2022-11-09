@@ -3,18 +3,18 @@ import functools
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List, cast, Any, Callable
 
-import pymodbus.client.sync
-import pymodbus.client.asynchronous.tcp
+import pymodbus.client.base
+import pymodbus.client.tcp
 import pymodbus.register_read_message
 import pymodbus.register_write_message
 import pymodbus.bit_read_message
 
-from modbus_client.exceptions import ReadErrorException, WriteErrorException
-from modbus_client.async_modbus_client import AsyncModbusClient
+from modbus_client.client.exceptions import ReadErrorException, WriteErrorException
+from modbus_client.client.async_modbus_client import AsyncModbusClient
 
 
 class PyAsyncModbusClient(AsyncModbusClient):
-    def __init__(self, client: pymodbus.client.sync.BaseModbusClient):
+    def __init__(self, client: pymodbus.client.base.ModbusBaseClient):
         self.client = client
         self.executor = ThreadPoolExecutor(1)
 
@@ -88,12 +88,12 @@ class PyAsyncModbusClient(AsyncModbusClient):
 
 class PyAsyncModbusTcpClient(PyAsyncModbusClient):
     def __init__(self, host: str, port: int, timeout: int):
-        super().__init__(pymodbus.client.sync.ModbusTcpClient(host=host, port=port, timeout=timeout))
+        super().__init__(pymodbus.client.tcp.ModbusTcpClient(host=host, port=port, timeout=timeout))
 
 
 class PyAsyncModbusRtuClient(PyAsyncModbusClient):
     def __init__(self, path: str, baudrate: int, stopbits: int, parity: str, timeout: int):
-        super().__init__(pymodbus.client.sync.ModbusSerialClient(method="rtu", port=path, baudrate=baudrate, stopbits=stopbits, parity=parity, timeout=timeout))
+        super().__init__(pymodbus.client.tcp.ModbusSerialClient(method="rtu", port=path, baudrate=baudrate, stopbits=stopbits, parity=parity, timeout=timeout))
 
 
 __all__ = [

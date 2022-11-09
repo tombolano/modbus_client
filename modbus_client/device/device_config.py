@@ -9,7 +9,7 @@ from typing import List, Optional, Union, cast, Any, Dict
 from pydantic import StrictInt, StrictFloat, validator
 from pydantic.dataclasses import dataclass
 
-from modbus_client.types import RegisterValueType
+from modbus_client.client.types import RegisterValueType
 
 
 class ValueRegisterTypeEnum(str, Enum):
