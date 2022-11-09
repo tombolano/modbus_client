@@ -1,0 +1,24 @@
+[project]
+name = "modbus_client"
+version = "0.0.1"
+description = "Device oriented Modbus client for Python. Focused on data meaning and data types"
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+requires-python = ">=3.8"
+keywords = ["cli", "client", "data", "modbus"]
+authors = [
+  {name = "Krystian Dużyński"},
+  {name = "Tomás Domínguez Bolaño"}
+]
+
+dependencies = [
+  "pymodbus>=3.0.0",
+  "pydantic",
+  "pyyaml"
+]
+
+[project.urls]
+repository = "https://github.com/tombolano/modbus_client"
+
+[tool.setuptools]
+packages = ["modbus_client"]
