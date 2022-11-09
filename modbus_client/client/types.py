@@ -26,11 +26,12 @@ RegisterValue = Union[int, bool]
 
 @dataclass
 class ModbusReadSession:
-    registers_dict: Dict[Tuple[RegisterType, int], RegisterValue] = field(default_factory=dict)
+    registers_dict: Dict[Tuple[RegisterType, int], RegisterValue] = \
+        field(default_factory=dict)
 
 
 __all__ = [
-    "RegisterType",
     "ModbusReadSession",
-    "RegisterValueType",
+    "RegisterType",
+    "RegisterValueType"
 ]
