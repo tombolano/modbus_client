@@ -21,4 +21,4 @@ dependencies = [
 repository = "https://github.com/tombolano/modbus_client"
 
 [tool.setuptools]
-packages = ["modbus_client"]
+packages = ["modbus_client", "modbus_client.client", "modbus_client.device"]
