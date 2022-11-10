@@ -1,5 +1,4 @@
-Modbus client for Python
------
+# Modbus client for Python
 
 > **Note**
 >
@@ -8,21 +7,13 @@ Modbus client for Python
 
 Device oriented Modbus client. As opposed to bare modbus clients, it focuses on data meaning and data types. Uses pymodbus under the hood.
 
-#### Features
 
+## Features
 - Merging read requests
 - System config file support (storing devices addresses/paths and their unit numbers in config file for easy querying)
 
-#### Installation
 
-The package can be installed with pip from the repository:
-
-```
-pip install git+https://github.com/tombolano/modbus_client.git
-```
-
-#### Supported data types:
-
+### Supported data types:
 - S16 (int16) - 16bit signed integer
 - U16 (uint16) - 16bit unsigned integer
 - S32BE (int32be) - 32bit signed integer, high word first
@@ -34,22 +25,28 @@ pip install git+https://github.com/tombolano/modbus_client.git
 
 Within the word, it assumes data is stored Least Significant Bit first.
 
-#### Example
 
+## Installation
+The package can be installed with pip from the repository:
+
+```
+pip install git+https://github.com/tombolano/modbus_client.git
+```
+
+
+## Example
 Take an example energy meter device with 2 registers:
 
 - 0x0001 - voltage, 1 word (2 bytes), LSB = 0.1 V
 - 0x0002 - energy, 2 words (4 bytes), high word first, LSB = 1 Wh
 
-```
-===================
+
 | Address | Value |
-===================
+|---------|-------|
 |  0x0001 |   123 |
 |  0x0002 |     1 |
 |  0x0003 |    50 |
-===================
-```
+
 
 `config.yaml` file content
 
@@ -74,9 +71,8 @@ registers:
     # - energy/0x0002/uint32be[Wh] 
 ```
 
-#### Library usage
-
-Reading device YAML file and querying some registers data:
+## Library usage
+* Reading device YAML file and querying some registers data:
 ```python
 import asyncio
 from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
@@ -94,7 +90,7 @@ async def main():
 asyncio.get_event_loop().run_until_complete(main())
 ```
 
-Directly defining the device registers in Python and querying them:
+* Directly defining the device registers in Python and querying them:
 ```python
 import asyncio
 from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
@@ -128,7 +124,7 @@ async def main():
 asyncio.get_event_loop().run_until_complete(main())
 ```
 
-#### CLI usage:
+## CLI usage:
 
 ```bash
 python -m modbus_client.cli device config.yaml <connection-params> --unit 1 read voltage
