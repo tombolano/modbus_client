@@ -1,9 +1,27 @@
 Modbus client for Python
 -----
 
+> **Note**
+>
+> This is a fork of https://github.com/KrystianD/modbus_client to make a Python package which can be installed with `pip`, and also with some other minor changes and fixes. 
+
+
 Device oriented Modbus client. As opposed to bare modbus clients, it focuses on data meaning and data types. Uses pymodbus under the hood.
 
-Supported data types:
+#### Features
+
+- Merging read requests
+- System config file support (storing devices addresses/paths and their unit numbers in config file for easy querying)
+
+#### Installation
+
+The package can be installed with pip from the repository:
+
+```
+pip install git+https://github.com/tombolano/modbus_client.git
+```
+
+#### Supported data types:
 
 - S16 (int16) - 16bit signed integer
 - U16 (uint16) - 16bit unsigned integer
@@ -58,19 +76,54 @@ registers:
 
 #### Library usage
 
+Reading device YAML file and querying some registers data:
 ```python
 import asyncio
-from modbus_client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
-from modbus_device.modbus_device import ModbusDevice
+from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
+from modbus_client.device.modbus_device import ModbusDevice
 
 async def main():
-    modbus_client = PyAsyncModbusTcpClient(host="192.168.1.10", port=4444, timeout=3)
+    client = PyAsyncModbusTcpClient(host="192.168.1.10", port=4444, timeout=3)
     # modbus_client = PyAsyncModbusRtuClient(path="/dev/ttyUSB0", baudrate=9600, stopbits=1, parity='N', timeout=3)
-    modbus_device = ModbusDevice.create_from_file("config.yaml")
-    voltage = await modbus_device.read_register(modbus_client, unit=1, register="voltage")
-    energy = await modbus_device.read_register(modbus_client, unit=1, register="energy")
+    device = ModbusDevice.create_from_file("config.yaml")
+    voltage = await device.read_register(client, unit=1, register="voltage")
+    energy = await device.read_register(client, unit=1, register="energy")
     print(voltage) # 12.3
     print(energy) # 65586
+
+asyncio.get_event_loop().run_until_complete(main())
+```
+
+Directly defining the device registers in Python and querying them:
+```python
+import asyncio
+from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
+from modbus_client.device.modbus_device import ModbusDevice
+
+async def main():
+    R = modbus_client.client.registers.NumericRegister
+    T = modbus_client.client.types.RegisterType
+    V = modbus_client.client.types.RegisterValueType
+
+    IR = T.InputRegister
+
+    registers = [
+        R("voltage", IR, 0x0001, V.U16,   unit="V", scale=0.1),
+        R("energy",  IR, 0x0002, V.U32BE, unit="Wh"),
+    ]
+
+    client = PyAsyncModbusTcpClient(host="192.168.1.10", port=4444, timeout=3)
+
+    try:
+        read_session = await client.read_registers(
+            unit=1, registers=registers)
+
+        # Print register data
+        for reg in registers:
+            val = reg.get_from_read_session(read_session)
+            print(f"{reg.name}: {val} {reg.unit}")
+    finally:
+        client.close()
 
 asyncio.get_event_loop().run_until_complete(main())
 ```
@@ -78,11 +131,7 @@ asyncio.get_event_loop().run_until_complete(main())
 #### CLI usage:
 
 ```bash
-python -m cli device config.yaml <connection-params> --unit 1 read voltage
-python -m cli device config.yaml <connection-params> --unit 1 read energy
+python -m modbus_client.cli device config.yaml <connection-params> --unit 1 read voltage
+python -m modbus_client.cli device config.yaml <connection-params> --unit 1 read energy
 ```
 
-#### Features
-
-- Merging read requests
-- System config file support (storing devices addresses/paths and their unit numbers in config file for easy querying)
