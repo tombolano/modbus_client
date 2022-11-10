@@ -24,12 +24,12 @@ def merge_address_ranges(registers: Sequence[AddressRange],
         if cur_rng is None:
             cur_rng = rng
         else:
-            diff = (rng.address + rng.count - 1) - \
-                   (cur_rng.address + cur_rng.count - 1)
-            if diff > 1:
+            start_diff = rng.address - (cur_rng.address + cur_rng.count)
+            end_diff = start_diff + rng.count
+            if start_diff > 1:
                 if allow_holes:
-                    if cur_rng.count + diff <= max_read_size:
-                        cur_rng.count += diff
+                    if cur_rng.count + end_diff <= max_read_size:
+                        cur_rng.count += end_diff
                     else:
                         buckets.append(cur_rng)
                         cur_rng = rng
@@ -37,7 +37,7 @@ def merge_address_ranges(registers: Sequence[AddressRange],
                     buckets.append(cur_rng)
                     cur_rng = rng
             else:
-                cur_rng.count += diff
+                cur_rng.count += end_diff
 
     if cur_rng is not None:
         buckets.append(cur_rng)
