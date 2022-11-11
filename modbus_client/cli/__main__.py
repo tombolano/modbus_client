@@ -44,7 +44,8 @@ def create_device_from_args(args: Args) -> DeviceCreationResult:
     if device_mode == "tcp":
         client = PyAsyncModbusTcpClient(host=args.host, port=args.port, timeout=3)
     elif device_mode == "rtu":
-        client = PyAsyncModbusRtuClient(path=args.path, baudrate=args.mode[0], stopbits=args.mode[2], parity=args.mode[1], timeout=3)
+        client = PyAsyncModbusRtuClient(
+            path=args.path, baudrate=args.mode[0], stopbits=args.mode[2], parity=args.mode[1], timeout=3)
     else:
         raise Exception("invalid mode")
 
@@ -72,18 +73,23 @@ def create_device_from_system_file(args: Args) -> DeviceCreationResult:
 
 
 async def query_device(device_config: DeviceConfig, client: AsyncModbusClient, unit: int,
-                       registers: List[IDeviceRegister] = [],
-                       switches: List[DeviceSwitch] = [],
+                       registers: Optional[List[IDeviceRegister]] = None,
+                       switches: Optional[List[DeviceSwitch]] = None,
                        show_register_names: bool = False,
                        show_registers_types: bool = False,
                        interval: Optional[float] = None) -> None:
+    if registers is None:
+        registers = []
+    if switches is None:
+        switches = []
     holding_registers = [x for x in registers if isinstance(x, DeviceHoldingRegister)]
     input_registers = [x for x in registers if isinstance(x, DeviceInputRegister)]
     all_registers: List[Union[IDeviceRegister, DeviceSwitch]] = [*registers, *switches]
     max_name_len = max(len(x.name) for x in all_registers)
 
     modbus_registers_map: Dict[str, IRegister] = {}
-    modbus_registers_map.update({register.name: create_modbus_register(device_config, register) for register in registers})
+    modbus_registers_map.update({register.name: create_modbus_register(device_config, register)
+                                 for register in registers})
     modbus_registers_map.update({switch.name: create_modbus_coil(device_config, switch) for switch in switches})
     modbus_registers = list(modbus_registers_map.values())
 
@@ -168,21 +174,25 @@ async def handle_read(device_config: DeviceConfig, client: AsyncModbusClient, un
     print(f"Register or switch [{name}] not found")
 
 
-async def handle_watch(device_config: DeviceConfig, client: AsyncModbusClient, unit: int, name: str, interval: float) -> None:
+async def handle_watch(device_config: DeviceConfig, client: AsyncModbusClient, unit: int, name: str,
+                       interval: float) -> None:
     register = device_config.find_register(name)
     if register is not None:
-        await query_device(device_config, client, unit, registers=[register], show_registers_types=False, interval=interval)
+        await query_device(device_config, client, unit, registers=[register], show_registers_types=False,
+                           interval=interval)
         return
 
     switch = device_config.find_switch(name)
     if switch is not None:
-        await query_device(device_config, client, unit, switches=[switch], show_registers_types=False, interval=interval)
+        await query_device(device_config, client, unit, switches=[switch], show_registers_types=False,
+                           interval=interval)
         return
 
     print(f"Register or switch [{name}] not found")
 
 
-async def handle_write(device_config: DeviceConfig, client: AsyncModbusClient, modbus_device: ModbusDevice, unit: int, name: str, value: float) -> None:
+async def handle_write(device_config: DeviceConfig, client: AsyncModbusClient, modbus_device: ModbusDevice, unit: int,
+                       name: str, value: float) -> None:
     register = device_config.find_register(name)
     if register is None:
         print("Register not found")
@@ -191,7 +201,8 @@ async def handle_write(device_config: DeviceConfig, client: AsyncModbusClient, m
     await modbus_device.write_register(client, unit, register, value)
 
 
-async def handle_enable(device_config: DeviceConfig, client: AsyncModbusClient, modbus_device: ModbusDevice, unit: int, name: str) -> None:
+async def handle_enable(device_config: DeviceConfig, client: AsyncModbusClient, modbus_device: ModbusDevice, unit: int,
+                        name: str) -> None:
     switch = device_config.find_switch(name)
     if switch is None:
         print("Switch not found")
@@ -200,7 +211,8 @@ async def handle_enable(device_config: DeviceConfig, client: AsyncModbusClient, 
     await modbus_device.switch_set(client, unit, switch, True)
 
 
-async def handle_disable(device_config: DeviceConfig, client: AsyncModbusClient, modbus_device: ModbusDevice, unit: int, name: str) -> None:
+async def handle_disable(device_config: DeviceConfig, client: AsyncModbusClient, modbus_device: ModbusDevice, unit: int,
+                         name: str) -> None:
     switch = device_config.find_switch(name)
     if switch is None:
         print("Switch not found")
@@ -209,7 +221,8 @@ async def handle_disable(device_config: DeviceConfig, client: AsyncModbusClient,
     await modbus_device.switch_set(client, unit, switch, False)
 
 
-async def handle_toggle(device_config: DeviceConfig, client: AsyncModbusClient, modbus_device: ModbusDevice, unit: int, name: str) -> None:
+async def handle_toggle(device_config: DeviceConfig, client: AsyncModbusClient, modbus_device: ModbusDevice, unit: int,
+                        name: str) -> None:
     switch = device_config.find_switch(name)
     if switch is None:
         print("Switch not found")
@@ -223,7 +236,7 @@ async def main() -> None:
 
     argparser.add_argument("--format", type=str, choices=("raw", "pretty", "json"), default="pretty")
 
-    mode_subparser = argparser.add_subparsers(title='standalone device', description='valid subcommands', help='additional help')
+    mode_subparser = argparser.add_subparsers(title='standalone device', description='valid subcommands')
     dev_p = mode_subparser.add_parser("device")
     dev_p.set_defaults(create_device=lambda x: create_device_from_args(x))
     dev_p.add_argument("device-file", type=str)
@@ -298,7 +311,7 @@ async def main() -> None:
         argparser.print_help()
         exit(1)
 
-    res = args.create_device(args)  # type: ignore
+    res = args.create_device(args)
     if res is None:
         system_p.print_help()
         exit(1)
@@ -350,4 +363,6 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(main())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main())

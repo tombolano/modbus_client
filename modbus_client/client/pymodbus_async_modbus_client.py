@@ -3,11 +3,10 @@ import functools
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List, cast, Any, Callable
 
-import pymodbus.client.base
-import pymodbus.client.tcp
+import pymodbus.bit_read_message
+import pymodbus.client
 import pymodbus.register_read_message
 import pymodbus.register_write_message
-import pymodbus.bit_read_message
 
 from modbus_client.client.exceptions import (
     ReadErrorException, WriteErrorException)
@@ -25,16 +24,12 @@ class PyAsyncModbusClient(AsyncModbusClient):
             self.executor, functools.partial(fn, *args, **kwargs))
 
     async def write_coil(self, unit: int, address: int, value: bool) -> None:
-        await self._run(
-            self.client.write_coil, unit=unit, address=address, value=value)
+        await self._run(self.client.write_coil, slave=unit, address=address, value=value)
 
     async def read_coils(self, unit: int, address: int,
                          count: int) -> List[bool]:
         bytes_count = (count + 7) // 8
-        result = await self._run(
-            self.client.read_coils, unit=unit, address=address,
-            count=bytes_count)
-
+        result = await self._run(self.client.read_coils, slave=unit, address=address, count=bytes_count)
         if isinstance(result, pymodbus.bit_read_message.ReadCoilsResponse):
             if result.byte_count != bytes_count:
                 raise ReadErrorException
@@ -44,12 +39,9 @@ class PyAsyncModbusClient(AsyncModbusClient):
 
         raise ReadErrorException
 
-    async def read_discrete_inputs(self, unit: int, address: int,
-                                   count: int) -> List[int]:
-        result = await self._run(self.client.read_discrete_inputs,
-                                 unit=unit, address=address, count=count)
-
-        if isinstance(result, pymodbus.bit_read_message.ReadDiscreteInputsResponse):  # noqa: E501
+    async def read_discrete_inputs(self, unit: int, address: int, count: int) -> List[int]:
+        result = await self._run(self.client.read_discrete_inputs, slave=unit, address=address, count=count)
+        if isinstance(result, pymodbus.bit_read_message.ReadDiscreteInputsResponse):
             if result.byte_count != count:
                 raise ReadErrorException
 
@@ -62,45 +54,39 @@ class PyAsyncModbusClient(AsyncModbusClient):
                     value |= bit << i
                 values.append(value)
             return values
+        else:
+            raise ReadErrorException(str(result))
 
-        raise ReadErrorException
-
-    async def read_input_registers(self, unit: int, address: int,
-                                   count: int) -> List[int]:
-        result = await self._run(self.client.read_input_registers,
-                                 unit=unit, address=address, count=count)
-
-        if isinstance(result, pymodbus.register_read_message.ReadInputRegistersResponse):  # noqa: E501
+    async def read_input_registers(self, unit: int, address: int, count: int) -> List[int]:
+        result = await self._run(self.client.read_input_registers, slave=unit, address=address, count=count)
+        if isinstance(result, pymodbus.register_read_message.ReadInputRegistersResponse):
             if len(result.registers) != count:
                 raise ReadErrorException
             # noinspection PyTypeChecker
             return cast(List[int], result.registers)
-        raise ReadErrorException
+        else:
+            raise ReadErrorException(str(result))
 
-    async def read_holding_registers(self, unit: int, address: int,
-                                     count: int) -> List[int]:
-        result = await self._run(self.client.read_holding_registers,
-                                 unit=unit, address=address, count=count)
-
-        if isinstance(result, pymodbus.register_read_message.ReadHoldingRegistersResponse):  # noqa: E501
+    async def read_holding_registers(self, unit: int, address: int, count: int) -> List[int]:
+        result = await self._run(self.client.read_holding_registers, slave=unit, address=address, count=count)
+        if isinstance(result, pymodbus.register_read_message.ReadHoldingRegistersResponse):
             if len(result.registers) != count:
                 raise ReadErrorException
             # noinspection PyTypeChecker
             return cast(List[int], result.registers)
-        raise ReadErrorException
+        else:
+            raise ReadErrorException(str(result))
 
     async def write_holding_registers(self, unit: int, address: int,
                                       values: List[int]) -> None:
         if len(values) == 1:
-            result = await self._run(self.client.write_register, unit=unit,
-                                     address=address, value=values[0])
-            if not isinstance(result, pymodbus.register_write_message.WriteSingleRegisterResponse):  # noqa: E501
-                raise WriteErrorException
+            result = await self._run(self.client.write_register, slave=unit, address=address, value=values[0])
+            if not isinstance(result, pymodbus.register_write_message.WriteSingleRegisterResponse):
+                raise WriteErrorException(str(result))
         else:
-            result = await self._run(self.client.write_registers, unit=unit,
-                                     address=address, values=values)
-            if not isinstance(result, pymodbus.register_write_message.WriteMultipleRegistersResponse):  # noqa: E501
-                raise WriteErrorException
+            result = await self._run(self.client.write_registers, slave=unit, address=address, values=values)
+            if not isinstance(result, pymodbus.register_write_message.WriteMultipleRegistersResponse):
+                raise WriteErrorException(str(result))
 
     def close(self) -> None:
         self.client.close()
@@ -108,16 +94,14 @@ class PyAsyncModbusClient(AsyncModbusClient):
 
 class PyAsyncModbusTcpClient(PyAsyncModbusClient):
     def __init__(self, host: str, port: int, timeout: int):
-        super().__init__(pymodbus.client.tcp.ModbusTcpClient(
-            host=host, port=port, timeout=timeout))
+        super().__init__(pymodbus.client.tcp.ModbusTcpClient(host=host, port=port, timeout=timeout))
 
 
 class PyAsyncModbusRtuClient(PyAsyncModbusClient):
-    def __init__(self, path: str, baudrate: int, stopbits: int,
-                 parity: str, timeout: int):
-        super().__init__(pymodbus.client.tcp.ModbusSerialClient(
-            method="rtu", port=path, baudrate=baudrate, stopbits=stopbits,
-            parity=parity, timeout=timeout))
+    def __init__(self, path: str, baudrate: int = 9600, stopbits: int = 1, parity: str = "N", timeout: int = 3):
+        super().__init__(pymodbus.client.serial.ModbusSerialClient(method="rtu", port=path,
+                                                                   baudrate=baudrate, stopbits=stopbits, parity=parity,
+                                                                   timeout=timeout))
 
 
 __all__ = [

@@ -19,7 +19,8 @@ def create_modbus_register(device: DeviceConfig, register: IDeviceRegister) -> N
     else:
         raise Exception("invalid type")
 
-    return NumericRegister(name=register.name, reg_type=reg_type, value_type=register.type, address=address, scale=register.scale, unit=register.unit)
+    return NumericRegister(name=register.name, reg_type=reg_type, value_type=register.type,
+                           address=address, scale=register.scale, unit=register.unit)
 
 
 def create_modbus_coil(device: DeviceConfig, register: DeviceSwitch) -> Coil:
@@ -59,7 +60,8 @@ class ModbusDevice:
         switch = self.get_switch(name)
         return create_modbus_coil(self._device_config, switch)
 
-    async def read_register(self, client: AsyncModbusClient, unit: int, register: Union[str, IDeviceRegister]) -> Union[float, int, bool]:
+    async def read_register(self, client: AsyncModbusClient, unit: int, register: Union[str, IDeviceRegister]) \
+            -> Union[float, int, bool]:
         if isinstance(register, IDeviceRegister):
             modbus_register = create_modbus_register(self._device_config, register)
         elif isinstance(register, str):
@@ -69,9 +71,10 @@ class ModbusDevice:
 
         read_session = await client.read_registers(unit=unit, registers=[modbus_register])
 
-        return modbus_register.get_from_read_session(read_session)
+        return modbus_register.get_value_from_read_session(read_session)
 
-    async def write_register(self, client: AsyncModbusClient, unit: int, register: Union[str, IDeviceRegister], value: Union[float, int]) -> None:
+    async def write_register(self, client: AsyncModbusClient, unit: int, register: Union[str, IDeviceRegister],
+                             value: Union[float, int]) -> None:
         if isinstance(register, IDeviceRegister):
             modbus_register = create_modbus_register(self._device_config, register)
         elif isinstance(register, str):
@@ -95,7 +98,8 @@ class ModbusDevice:
 
         return modbus_register.get_from_read_session(read_session)
 
-    async def switch_set(self, client: AsyncModbusClient, unit: int, switch: Union[str, DeviceSwitch], value: bool) -> None:
+    async def switch_set(self, client: AsyncModbusClient, unit: int, switch: Union[str, DeviceSwitch],
+                         value: bool) -> None:
         if isinstance(switch, DeviceSwitch):
             modbus_register = create_modbus_coil(self._device_config, switch)
         elif isinstance(switch, str):
