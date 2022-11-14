@@ -8,36 +8,45 @@ from modbus_client.client.types import ModbusReadSession
 
 class AsyncModbusClient:
     @abstractmethod
-    async def write_coil(self, unit: int, address: int, value: bool) -> None:
+    async def write_coil(self, slave: int, address: int, value: bool) -> None:
         pass
 
     @abstractmethod
     async def read_coils(
-            self, unit: int, address: int, count: int) -> List[bool]:
+        self, slave: int, address: int, count: int
+    ) -> List[bool]:
         pass
 
     @abstractmethod
     async def read_discrete_inputs(
-            self, unit: int, address: int, count: int) -> List[int]:
+        self, slave: int, address: int, count: int
+    ) -> List[int]:
         pass
 
     @abstractmethod
     async def read_input_registers(
-            self, unit: int, address: int, count: int) -> List[int]:
+        self, slave: int, address: int, count: int
+    ) -> List[int]:
         pass
 
     @abstractmethod
     async def read_holding_registers(
-            self, unit: int, address: int, count: int) -> List[int]:
+        self, slave: int, address: int, count: int
+    ) -> List[int]:
         pass
 
     @abstractmethod
     async def write_holding_registers(
-            self, unit: int, address: int, values: List[int]) -> None:
+        self, slave: int, address: int, values: List[int]
+    ) -> None:
         pass
 
     @abstractmethod
-    def close(self) -> None:
+    async def connect(self) -> None:
+        pass
+
+    @abstractmethod
+    async def close(self) -> None:
         pass
 
     async def read_registers(
