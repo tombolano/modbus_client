@@ -49,6 +49,16 @@ class AsyncModbusClient:
     async def close(self) -> None:
         pass
 
+    async def __aenter__(self) -> "AsyncModbusClient":
+        await self.connect()
+        return self
+
+    async def __aexit__(
+        self, exc_type: Any, exc_val: Any, exc_tb: Any
+    ) -> bool:
+        await self.close()
+        return False
+
     async def read_registers(
         self,
         slave: int,
