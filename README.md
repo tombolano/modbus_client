@@ -2,7 +2,7 @@
 
 > **Note**
 >
-> This is a fork of https://github.com/KrystianD/modbus_client to make a Python package which can be installed with `pip`, and also with some other minor changes and fixes. 
+> This is a fork of https://github.com/KrystianD/modbus_client to make a Python package which can be installed with `pip`, and also with some other minor changes. 
 
 
 Device oriented Modbus client. As opposed to bare modbus clients, it focuses on data meaning and data types. Uses pymodbus under the hood.
@@ -87,7 +87,7 @@ async def main():
     print(voltage) # 12.3
     print(energy) # 65586
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())
 ```
 
 * Directly defining the device registers in Python and querying them:
@@ -108,9 +108,10 @@ async def main():
         R("energy",  IR, 0x0002, V.U32BE, unit="Wh"),
     ]
 
-    client = PyAsyncModbusTcpClient(host="192.168.1.10", port=4444, timeout=3)
+    host = "192.168.1.10"
+    port = 4444
 
-    try:
+    async with PyAsyncModbusTcpClient(host, port, timeout=3) as client:
         read_session = await client.read_registers(
             unit=1, registers=registers)
 
@@ -118,10 +119,9 @@ async def main():
         for reg in registers:
             val = reg.get_from_read_session(read_session)
             print(f"{reg.name}: {val} {reg.unit}")
-    finally:
-        client.close()
 
-asyncio.get_event_loop().run_until_complete(main())
+
+asyncio.run(main())
 ```
 
 ## CLI usage:
