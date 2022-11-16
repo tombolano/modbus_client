@@ -73,7 +73,7 @@ registers:
 
 ## Library usage examples
 
-* Reading device YAML file and querying some registers data:
+### Reading device YAML file and querying some registers data:
 ```python
 import asyncio
 from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
@@ -91,7 +91,7 @@ async def main():
 asyncio.run(main())
 ```
 
-* Directly defining the device registers in Python and querying them:
+### Directly defining the device registers in Python and querying them:
 ```python
 import asyncio
 from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
@@ -124,7 +124,7 @@ async def main():
 asyncio.run(main())
 ```
 
-* Using a request object to query the data
+### Using a request object to query the data
 
 The package includes request classes employing the command pattern to perform the read or write operations. In particular, for reading typed data the class ReadRegistersRequest is provided.
 
