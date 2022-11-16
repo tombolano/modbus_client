@@ -71,7 +71,8 @@ registers:
     # - energy/0x0002/uint32be[Wh] 
 ```
 
-## Library usage
+## Library usage examples
+
 * Reading device YAML file and querying some registers data:
 ```python
 import asyncio
@@ -94,7 +95,6 @@ asyncio.run(main())
 ```python
 import asyncio
 from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
-from modbus_client.device.modbus_device import ModbusDevice
 
 async def main():
     R = modbus_client.client.registers.NumericRegister
@@ -113,9 +113,50 @@ async def main():
 
     async with PyAsyncModbusTcpClient(host, port, timeout=3) as client:
         read_session = await client.read_registers(
-            unit=1, registers=registers)
+            slave=1, registers=registers)
 
-        # Print register data
+        # Print registers data
+        for reg in registers:
+            val = reg.get_from_read_session(read_session)
+            print(f"{reg.name}: {val} {reg.unit}")
+
+
+asyncio.run(main())
+```
+
+* Using a request object to query the data
+
+The package includes request classes employing the command pattern to perform the read or write operations. In particular, for reading typed data the class ReadRegistersRequest is provided.
+
+```python
+import asyncio
+from modbus_client.client.requests import ReadRegistersRequest
+from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
+
+async def main():
+    R = modbus_client.client.registers.NumericRegister
+    T = modbus_client.client.types.RegisterType
+    V = modbus_client.client.types.RegisterValueType
+
+    IR = T.InputRegister
+
+    registers = [
+        R("voltage", IR, 0x0001, V.U16,   unit="V", scale=0.1),
+        R("energy",  IR, 0x0002, V.U32BE, unit="Wh"),
+    ]
+
+    request = ReadRegistersRequest(registers, slave=1, allow_holes=False)
+
+    host = "192.168.1.10"
+    port = 4444
+
+    async with PyAsyncModbusTcpClient(host, port, timeout=3) as client:
+        read_session = await client.execute_read_registers_request(request)
+        
+        # read_session can be also obtained calling execute on the request:
+        # read_session = await request.execute(client)
+
+        # Print registers data
         for reg in registers:
             val = reg.get_from_read_session(read_session)
             print(f"{reg.name}: {val} {reg.unit}")
