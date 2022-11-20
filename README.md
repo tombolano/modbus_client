@@ -9,8 +9,10 @@ Device oriented Modbus client. As opposed to bare modbus clients, it focuses on 
 
 
 ## Features
+- Asynchronous interface
 - Merging read requests
 - System config file support (storing devices addresses/paths and their unit numbers in config file for easy querying)
+- Support for both asynchronous and synchronous pymodbus clients.
 
 
 ### Supported data types:
@@ -76,12 +78,12 @@ registers:
 ### Reading device YAML file and querying some registers data:
 ```python
 import asyncio
-from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
+from modbus_client.client.client import AsyncModbusTcpClient
 from modbus_client.device.modbus_device import ModbusDevice
 
 async def main():
-    client = PyAsyncModbusTcpClient(host="192.168.1.10", port=4444, timeout=3)
-    # modbus_client = PyAsyncModbusRtuClient(path="/dev/ttyUSB0", baudrate=9600, stopbits=1, parity='N', timeout=3)
+    client = AsyncModbusTcpClient(host="192.168.1.10", port=4444, timeout=3)
+    # modbus_client = AsyncModbusSerialClient(path="/dev/ttyUSB0", baudrate=9600, stopbits=1, parity='N', timeout=3)
     device = ModbusDevice.create_from_file("config.yaml")
     voltage = await device.read_register(client, unit=1, register="voltage")
     energy = await device.read_register(client, unit=1, register="energy")
@@ -94,7 +96,7 @@ asyncio.run(main())
 ### Directly defining the device registers in Python and querying them:
 ```python
 import asyncio
-from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
+from modbus_client.client.client import AsyncModbusTcpClient
 
 async def main():
     R = modbus_client.client.registers.NumericRegister
@@ -111,9 +113,10 @@ async def main():
     host = "192.168.1.10"
     port = 4444
 
-    async with PyAsyncModbusTcpClient(host, port, timeout=3) as client:
+    async with AsyncModbusTcpClient(host, port, timeout=3) as client:
         read_session = await client.read_registers(
-            slave=1, registers=registers)
+            registers=registers, slave=1
+        )
 
         # Print registers data
         for reg in registers:
@@ -131,7 +134,7 @@ The package includes request classes employing the command pattern to perform th
 ```python
 import asyncio
 from modbus_client.client.requests import ReadRegistersRequest
-from modbus_client.client.pymodbus_async_modbus_client import PyAsyncModbusTcpClient
+from modbus_client.client.client import AsyncModbusTcpClient
 
 async def main():
     R = modbus_client.client.registers.NumericRegister
@@ -150,11 +153,11 @@ async def main():
     host = "192.168.1.10"
     port = 4444
 
-    async with PyAsyncModbusTcpClient(host, port, timeout=3) as client:
-        read_session = await client.execute_read_registers_request(request)
+    async with AsyncModbusTcpClient(host, port, timeout=3) as client:
+        read_session = await request.execute(client)
         
-        # read_session can be also obtained calling execute on the request:
-        # read_session = await request.execute(client)
+        # read_session can be also obtained calling execute on the client:
+        # read_session = await client.execute(request)
 
         # Print registers data
         for reg in registers:
@@ -165,7 +168,12 @@ async def main():
 asyncio.run(main())
 ```
 
+
 ## CLI usage:
+
+> **Note**
+>
+> The cli interface is not working, it is unchanged from the base repository https://github.com/KrystianD/modbus_client and needs to be updated. 
 
 ```bash
 python -m modbus_client.cli device config.yaml <connection-params> --unit 1 read voltage
