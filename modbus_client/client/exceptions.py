@@ -1,9 +1,16 @@
+from pymodbus.pdu import ModbusResponse
+
+
 class ReadErrorException(Exception):
-    pass
+    def __init__(self, response: ModbusResponse) -> None:
+        super().__init__(str(response))
+        self.response = response
 
 
 class WriteErrorException(Exception):
-    pass
+    def __init__(self, response: ModbusResponse) -> None:
+        super().__init__(str(response))
+        self.response = response
 
 
 __all__ = [

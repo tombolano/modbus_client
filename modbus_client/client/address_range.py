@@ -16,15 +16,20 @@ class AddressRange:
         return self.address + self.count - 1
 
 
-def merge_address_ranges(registers: Sequence[AddressRange], allow_holes: bool, max_read_size: int) \
-        -> List[AddressRange]:
+def merge_address_ranges(
+    registers: Sequence[AddressRange], allow_holes: bool, max_read_size: int
+) -> List[AddressRange]:
     buckets: List[AddressRange] = []
     cur_rng: Optional[AddressRange] = None
 
     for register in sorted(registers, key=lambda x: (x.address, -x.count)):
         rng = AddressRange(register.address, register.count)
 
-        if cur_rng is not None and rng.first_address >= cur_rng.first_address and rng.last_address <= cur_rng.last_address:
+        if (
+            cur_rng is not None
+            and rng.first_address >= cur_rng.first_address
+            and rng.last_address <= cur_rng.last_address
+        ):
             continue
 
         if cur_rng is None:
@@ -51,7 +56,4 @@ def merge_address_ranges(registers: Sequence[AddressRange], allow_holes: bool, m
     return buckets
 
 
-__all__ = [
-    "AddressRange",
-    "merge_address_ranges"
-]
+__all__ = ["AddressRange", "merge_address_ranges"]

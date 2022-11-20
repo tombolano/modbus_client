@@ -1,6 +1,6 @@
 [project]
 name = "modbus_client"
-version = "0.0.1"
+version = "0.1.0"
 description = "Device oriented Modbus client for Python. Focused on data meaning and data types"
 readme = "README.md"
 license = {file = "LICENSE.txt"}
