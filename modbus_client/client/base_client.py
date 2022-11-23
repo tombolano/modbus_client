@@ -113,9 +113,9 @@ class Request(Generic[T]):
 @dataclass
 class WriteCoilRequest(Request[None]):
     T = type(None)
-    slave: int
     address: int
     value: bool
+    slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> None:
         await client.write_coil(self.address, self.value, self.slave)
@@ -124,9 +124,9 @@ class WriteCoilRequest(Request[None]):
 @dataclass
 class ReadCoilsRequest(Request[List[bool]]):
     T = List[bool]
-    slave: int
     address: int
-    count: int
+    count: int = Defaults.count
+    slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> List[bool]:
         return await client.read_coils(self.address, self.count, self.slave)
@@ -134,9 +134,9 @@ class ReadCoilsRequest(Request[List[bool]]):
 
 @dataclass
 class ReadDiscreteInputsRequest(Request[List[int]]):
-    slave: int
     address: int
-    count: int
+    count: int = Defaults.count
+    slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
         return await client.read_discrete_inputs(
@@ -146,9 +146,9 @@ class ReadDiscreteInputsRequest(Request[List[int]]):
 
 @dataclass
 class ReadInputRegistersRequest(Request[List[int]]):
-    slave: int
     address: int
-    count: int
+    count: int = Defaults.count
+    slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
         return await client.read_input_registers(
@@ -158,9 +158,9 @@ class ReadInputRegistersRequest(Request[List[int]]):
 
 @dataclass
 class ReadHoldingRegistersRequest(Request[List[int]]):
-    slave: int
     address: int
-    count: int
+    count: int = Defaults.count
+    slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
         return await client.read_holding_registers(
@@ -170,9 +170,9 @@ class ReadHoldingRegistersRequest(Request[List[int]]):
 
 @dataclass
 class WriteHoldingRegistersRequest(Request[None]):
-    slave: int
     address: int
     values: List[int]
+    slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> None:
         await client.write_holding_registers(
@@ -183,9 +183,9 @@ class WriteHoldingRegistersRequest(Request[None]):
 @dataclass
 class ReadRegistersRequest(Request[ModbusReadSession]):
     registers: Sequence[IRegister]
-    slave: int = 1
-    allow_holes: bool = True
-    max_read_size: int = 100
+    slave: int = Defaults.slave
+    allow_holes: bool = Defaults.allow_holes
+    max_read_size: int = Defaults.allow_holes
 
     def __post_init__(self) -> None:
         self.buckets: Dict[RegisterType, List[AddressRange]] = {}
