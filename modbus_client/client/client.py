@@ -28,7 +28,7 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
         self.client = client
 
     async def _run(
-        self, fn: Callable[..., Awaitable[T] | T], *args: int, **kwargs: str
+        self, fn: Callable[..., Awaitable[T] | T], *args: Any, **kwargs: str
     ) -> T:
         if self.client.use_protocol:
             fn = cast(Callable[..., Awaitable[T]], fn)
@@ -111,8 +111,14 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
         self, address: int, values: List[int], slave: int = Defaults.slave
     ) -> None:
         c = self.client
-        f = c.write_register if len(values) == 1 else c.write_registers
-        result = await self._run(f, address, values[0], slave)
+        if len(values) == 1:
+            result = await self._run(
+                c.write_register, address, values[0], slave
+            )
+        else:
+            result = await self._run(
+                c.write_registers, address, values, slave
+            )
         if result.isError():
             raise WriteErrorException(result)
 
