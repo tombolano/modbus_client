@@ -32,7 +32,7 @@ Within the word, it assumes data is stored Least Significant Bit first.
 The package can be installed with pip from the repository:
 
 ```
-pip install git+https://github.com/tombolano/modbus_client.git
+pip install git+https://github.com/GTEC-UDC/modbus_client.git
 ```
 
 
@@ -173,7 +173,7 @@ asyncio.run(main())
 
 > **Note**
 >
-> The cli interface is not working, it is unchanged from the base repository https://github.com/KrystianD/modbus_client and needs to be updated. 
+> The CLI interface is not working, it is unchanged from the base repository https://github.com/KrystianD/modbus_client and needs to be updated. 
 
 ```bash
 python -m modbus_client.cli device config.yaml <connection-params> --unit 1 read voltage
