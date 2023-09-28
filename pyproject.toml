@@ -12,7 +12,7 @@ authors = [
 ]
 
 dependencies = [
-  "pymodbus>=3.0.0",
+  "pymodbus==3.0.0",
   "pydantic",
   "pyyaml"
 ]
