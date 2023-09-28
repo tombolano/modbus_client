@@ -21,7 +21,7 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
     executor: Optional[concurrent.futures.Executor]
 
     def __init__(self, client: pymodbus.client.base.ModbusBaseClient):
-        if client.use_sync:
+        if client.use_protocol:
             self.executor = None
         else:
             self.executor = concurrent.futures.ThreadPoolExecutor(1)
@@ -30,7 +30,7 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
     async def _run(
         self, fn: Callable[..., Awaitable[T] | T], *args: Any, **kwargs: str
     ) -> T:
-        if self.client.use_sync:
+        if self.client.use_protocol:
             fn = cast(Callable[..., Awaitable[T]], fn)
             return await fn(*args, *kwargs)
         else:
