@@ -21,14 +21,14 @@ class RegisterTypeConverter:
 
 
 register_type_converters: dict[RegisterValueType, RegisterTypeConverter] = {
-    RegisterValueType.S16: RegisterTypeConverter("h", False, round),
-    RegisterValueType.U16: RegisterTypeConverter("H", False, round),
-    RegisterValueType.S32BE: RegisterTypeConverter("i", True, round),
-    RegisterValueType.U32BE: RegisterTypeConverter("I", True, round),
-    RegisterValueType.S32LE: RegisterTypeConverter("i", False, round),
-    RegisterValueType.U32LE: RegisterTypeConverter("I", False, round),
     RegisterValueType.F32BE: RegisterTypeConverter("f", True, float),
     RegisterValueType.F32LE: RegisterTypeConverter("f", False, float),
+    RegisterValueType.S16: RegisterTypeConverter("h", False, round),
+    RegisterValueType.S32BE: RegisterTypeConverter("i", True, round),
+    RegisterValueType.S32LE: RegisterTypeConverter("i", False, round),
+    RegisterValueType.U16: RegisterTypeConverter("H", False, round),
+    RegisterValueType.U32BE: RegisterTypeConverter("I", True, round),
+    RegisterValueType.U32LE: RegisterTypeConverter("I", False, round),
 }
 
 
@@ -67,7 +67,9 @@ class IRegister(AddressRange):
     def format(self, read_session: ModbusReadSession) -> str:
         pass
 
-    def get_raw_from_read_session(self, read_session: ModbusReadSession) -> int:
+    def get_raw_from_read_session(
+        self, read_session: ModbusReadSession
+    ) -> Union[int, float]:
         reg_type_converter = get_type_format(self.value_type)
         count = struct.calcsize(reg_type_converter.format_str) // 2
 
@@ -83,14 +85,15 @@ class IRegister(AddressRange):
         )
 
         value_bytes = struct.pack("<" + "H" * count, *registers_ordered)
-        val = cast(
-            int, struct.unpack("<" + reg_type_converter.format_str, value_bytes)[0]
-        )
+
+        val: Union[int, float] = struct.unpack(
+            "<" + reg_type_converter.format_str, value_bytes
+        )[0]
 
         if self.bits is None:
             return val
         else:
-            return get_bits(val, self.bits)
+            return get_bits(cast(int, val), self.bits)
 
     def value_to_modbus_registers(self, value: Union[int, float]) -> list[int]:
         reg_type_converter = get_type_format(self.value_type)
@@ -144,52 +147,16 @@ class NumericRegister(IRegister):
     def format(self, read_session: ModbusReadSession) -> str:
         value = self.get_value_from_read_session(read_session)
         unit_str = "" if self.unit is None else (" " + self.unit)
+
         if isinstance(value, int):
             return f"{value}{unit_str}"
         elif isinstance(value, float):
             return f"{value:.3f}{unit_str}"
+        else:
+            raise ValueError(f"Invalid value type {type(value)}")
 
 
 TEnumRegisterEnumCls = TypeVar("TEnumRegisterEnumCls")
-
-
-# class EnumRegister(IRegister, Generic[TEnumRegisterEnumCls]):
-#     def __init__(self, name: str, reg_type: RegisterType, address: int, enum_cls: Type[TEnumRegisterEnumCls], value_type: RegisterValueType = RegisterValueType.U16,
-#                  bits: Optional[BitsArray] = None) -> None:
-#         super().__init__(name=name, reg_type=reg_type, address=address, value_type=value_type, bits=bits)
-#         self.enum_cls = enum_cls
-#
-#     def get_raw(self, read_session: ModbusReadSession) -> int:
-#         value = self.get_value_from_read_session(read_session)
-#         return value
-#
-#     def get_from_read_session(self, read_session: ModbusReadSession) -> TEnumRegisterEnumCls:
-#         value = self.get_value_from_read_session(read_session)
-#         return self.enum_cls(value)  # type: ignore
-#
-#
-# class BoolRegister(IRegister):
-#     def __init__(self, name: str, reg_type: RegisterType, address: int, bit: int = 0) -> None:
-#         super().__init__(name=name, reg_type=reg_type, address=address, value_type=RegisterValueType.U16, bits=[bit])
-#
-#     # def get_raw(self, read_session: ModbusReadSession) -> int:
-#     #     value = get_int_from_registers_map(registers_data,self.type, self.address, self.count, self.bits)
-#     #     return value
-#
-#     def get_from_read_session(self, read_session: ModbusReadSession) -> bool:
-#         value = self.get_value_from_read_session(read_session)
-#         print("value", value)
-#         return value == 1
-#
-#     def format(self, read_session: ModbusReadSession) -> str:
-#         value = self.get_from_read_session(read_session)
-#         # unit_str = "" if self.unit is None else (" " + self.unit)
-#         # if isinstance(value, int):
-#         #     return f"{value}{unit_str}"
-#         # elif isinstance(value, float):
-#         #     return f"{value:.3f}{unit_str}"
-#
-#         pass
 
 
 class Coil(IRegister):
