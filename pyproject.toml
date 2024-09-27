@@ -1,26 +1,27 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "modbus_client"
-version = "0.1.0"
-description = "Device oriented Modbus client for Python. Focused on data meaning and data types"
+version = "0.1.1"
+description = "Device oriented Modbus client for Python. Focused on data meaning and data types."
 readme = "README.md"
-license = {file = "LICENSE.txt"}
+license = { file = "LICENSE.txt" }
 requires-python = ">=3.8"
 keywords = ["cli", "client", "data", "modbus"]
-authors = [
-  {name = "Krystian Dużyński"},
-  {name = "Tomás Domínguez Bolaño"}
-]
+authors = [{ name = "Krystian Dużyński" }, { name = "Tomás Domínguez Bolaño" }]
 
-dependencies = [
-  "pyserial-asyncio==0.6",
-  "pymodbus==3.0.0",
-  "pydantic",
-  "pyyaml"
-]
+dynamic = ["dependencies"]
 
 [project.urls]
 repository = "https://github.com/tombolano/modbus_client"
 
-[tool.setuptools]
-packages = ["modbus_client", "modbus_client.cli",
-            "modbus_client.client", "modbus_client.device"]
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"modbus_client.device.devices" = ["*.yaml"]
