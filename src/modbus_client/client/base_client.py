@@ -47,7 +47,7 @@ class AsyncModbusBaseClient:
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> list[int]:
+    ) -> list[bool]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -122,12 +122,12 @@ class ReadCoilsRequest(Request[list[bool]]):
 
 
 @dataclass
-class ReadDiscreteInputsRequest(Request[list[int]]):
+class ReadDiscreteInputsRequest(Request[list[bool]]):
     address: int
     count: int = Defaults.count
     slave: int = Defaults.slave
 
-    async def execute(self, client: AsyncModbusBaseClient) -> list[int]:
+    async def execute(self, client: AsyncModbusBaseClient) -> list[bool]:
         return await client.read_discrete_inputs(self.address, self.count, self.slave)
 
 

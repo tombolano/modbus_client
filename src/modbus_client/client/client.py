@@ -56,9 +56,8 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
         count: int = Defaults.count,
         slave: int = Defaults.slave,
     ) -> list[bool]:
-        bytes_count = (count + 7) // 8
-        result = await self._run(self.client.read_coils, address, bytes_count, slave)
-        if result.isError() or result.byte_count != bytes_count:
+        result = await self._run(self.client.read_coils, address, count, slave)
+        if result.isError():
             raise ReadErrorException(result)
         return cast(list[bool], result.bits[:count])
 
@@ -67,21 +66,13 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> list[int]:
+    ) -> list[bool]:
         result = await self._run(
             self.client.read_discrete_inputs, address, count, slave
         )
-        if result.isError() or result.byte_count != count:
+        if result.isError():
             raise ReadErrorException(result)
-        values = []
-        for byte_i in range(count):
-            value = 0
-            start_bit = 8 * byte_i
-            end_bit = start_bit + 8
-            for i, bit in enumerate(result.bits[start_bit:end_bit]):
-                value |= bit << i
-            values.append(value)
-        return values
+        return cast(list[bool], result.bits[:count])
 
     async def read_input_registers(
         self,
