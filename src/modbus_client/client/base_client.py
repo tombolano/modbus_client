@@ -79,7 +79,7 @@ class AsyncModbusBaseClient:
         raise NotImplementedError()
 
     @abstractmethod
-    async def close(self) -> None:
+    def close(self) -> None:
         raise NotImplementedError()
 
     async def __aenter__(self) -> "AsyncModbusBaseClient":
@@ -89,7 +89,7 @@ class AsyncModbusBaseClient:
     async def __aexit__(
         self, exc_type: Any, exc_val: Any, exc_tb: Any
     ) -> Literal[False]:
-        await self.close()
+        self.close()
         return False
 
 

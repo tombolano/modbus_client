@@ -1,10 +1,11 @@
 import asyncio
-import concurrent
+import concurrent.futures
 import functools
 from collections.abc import Awaitable, Callable
-from typing import Any, Optional, TypeVar, cast
+from typing import Any, Optional, TypeVar, Union, cast
 
 import pymodbus.client
+import pymodbus.client.base
 
 from modbus_client.client.base_client import AsyncModbusBaseClient
 from modbus_client.client.constants import Defaults
@@ -12,22 +13,28 @@ from modbus_client.client.exceptions import ReadErrorException, WriteErrorExcept
 
 T = TypeVar("T")
 
+pymodbus_client_type = Union[
+    pymodbus.client.base.ModbusBaseClient, pymodbus.client.base.ModbusBaseSyncClient
+]
+
 
 class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
-    client: pymodbus.client.ModbusBaseClient
+    client: pymodbus_client_type
     executor: Optional[concurrent.futures.Executor]
 
-    def __init__(self, client: pymodbus.client.base.ModbusBaseClient):
-        if client.use_protocol:
+    def __init__(self, client: pymodbus_client_type):
+        self.client = client
+        self.is_client_async = isinstance(client, pymodbus.client.base.ModbusBaseClient)
+
+        if self.is_client_async:
             self.executor = None
         else:
             self.executor = concurrent.futures.ThreadPoolExecutor(1)
-        self.client = client
 
     async def _run(
         self, fn: Callable[..., Awaitable[T] | T], *args: Any, **kwargs: str
     ) -> T:
-        if self.client.use_protocol:
+        if self.is_client_async:
             fn = cast(Callable[..., Awaitable[T]], fn)
             return await fn(*args, *kwargs)
         else:
@@ -116,18 +123,20 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
     async def connect(self) -> None:
         await self._run(self.client.connect)
 
-    async def close(self) -> None:
-        await self._run(self.client.close)
+    def close(self) -> None:
+        self.client.close()
 
 
 class ModbusTcpClient(AsyncModbusPyModbusClient):
     def __init__(self, host: str, port: int = Defaults.tcpport, **kwargs: Any) -> None:
-        super().__init__(pymodbus.client.ModbusTcpClient(host, port, **kwargs))
+        super().__init__(pymodbus.client.ModbusTcpClient(host, port=port, **kwargs))
 
 
 class AsyncModbusTcpClient(AsyncModbusPyModbusClient):
     def __init__(self, host: str, port: int = Defaults.tcpport, **kwargs: Any) -> None:
-        super().__init__(pymodbus.client.AsyncModbusTcpClient(host, port, **kwargs))
+        super().__init__(
+            pymodbus.client.AsyncModbusTcpClient(host, port=port, **kwargs)
+        )
 
 
 class ModbusSerialClient(AsyncModbusPyModbusClient):
