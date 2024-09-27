@@ -1,18 +1,18 @@
 from typing import Union
 
-from modbus_client.client.constants import Defaults
 from modbus_client.client.base_client import AsyncModbusBaseClient
-from modbus_client.client.registers import NumericRegister, Coil
+from modbus_client.client.constants import Defaults
+from modbus_client.client.registers import Coil, NumericRegister
 from modbus_client.client.types import RegisterType
 from modbus_client.device.device_config import (
     DeviceConfig,
-    IDeviceRegister,
-    DeviceInputRegister,
     DeviceHoldingRegister,
+    DeviceInputRegister,
+    DeviceSwitch,
+    IDeviceRegister,
+    SwitchRegisterTypeEnum,
     load_device_config,
     load_device_config_from_yaml,
-    DeviceSwitch,
-    SwitchRegisterTypeEnum,
 )
 from modbus_client.device.device_config_finder import find_device_file
 
@@ -84,9 +84,7 @@ class ModbusDevice:
         slave: int = Defaults.slave,
     ) -> Union[float, int, bool]:
         if isinstance(register, IDeviceRegister):
-            modbus_register = create_modbus_register(
-                self._device_config, register
-            )
+            modbus_register = create_modbus_register(self._device_config, register)
         elif isinstance(register, str):
             modbus_register = self.get_numeric_register(register)
         else:
@@ -103,9 +101,7 @@ class ModbusDevice:
         slave: int = Defaults.slave,
     ) -> None:
         if isinstance(register, IDeviceRegister):
-            modbus_register = create_modbus_register(
-                self._device_config, register
-            )
+            modbus_register = create_modbus_register(self._device_config, register)
         elif isinstance(register, str):
             modbus_register = self.get_numeric_register(register)
         else:

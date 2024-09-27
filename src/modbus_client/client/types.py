@@ -11,14 +11,14 @@ class RegisterType(Enum):
 
 
 class RegisterValueType(str, Enum):
-    S16 = 'int16'
-    U16 = 'uint16'
-    S32BE = 'int32be'
-    S32LE = 'int32le'
-    U32BE = 'uint32be'
-    U32LE = 'uint32le'
-    F32BE = 'float32be'
-    F32LE = 'float32le'
+    S16 = "int16"
+    U16 = "uint16"
+    S32BE = "int32be"
+    S32LE = "int32le"
+    U32BE = "uint32be"
+    U32LE = "uint32le"
+    F32BE = "float32be"
+    F32LE = "float32le"
 
 
 RegisterValue = Union[int, bool]
@@ -26,12 +26,9 @@ RegisterValue = Union[int, bool]
 
 @dataclass
 class ModbusReadSession:
-    registers_dict: Dict[Tuple[RegisterType, int], RegisterValue] = \
-        field(default_factory=dict)
+    registers_dict: Dict[Tuple[RegisterType, int], RegisterValue] = field(
+        default_factory=dict
+    )
 
 
-__all__ = [
-    "ModbusReadSession",
-    "RegisterType",
-    "RegisterValueType"
-]
+__all__ = ["ModbusReadSession", "RegisterType", "RegisterValueType"]

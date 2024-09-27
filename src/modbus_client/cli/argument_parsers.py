@@ -1,6 +1,6 @@
 import argparse
 import re
-from typing import Tuple, Any
+from typing import Any, Tuple
 
 ModeTupleType = Tuple[int, str, int]
 

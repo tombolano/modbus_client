@@ -1,15 +1,20 @@
 import struct
 from abc import abstractmethod
-from typing import Union, List, TypeVar, Optional, Tuple, cast, Callable, Any
+from typing import Any, Callable, List, Optional, Tuple, TypeVar, Union, cast
 
 from modbus_client.client.address_range import AddressRange
 from modbus_client.client.types import (
-    ModbusReadSession, RegisterType, RegisterValueType)
+    ModbusReadSession,
+    RegisterType,
+    RegisterValueType,
+)
 
 BitsArray = List[int]
 
 
-def get_type_format(reg_type: RegisterValueType) -> Tuple[str, bool, Callable[[Any], Union[int, float]]]:
+def get_type_format(
+    reg_type: RegisterValueType,
+) -> Tuple[str, bool, Callable[[Any], Union[int, float]]]:
     if reg_type == RegisterValueType.S16:
         return "h", False, round
     elif reg_type == RegisterValueType.U16:
@@ -38,8 +43,14 @@ def get_bits(value: int, bits: BitsArray) -> int:
 
 
 class IRegister(AddressRange):
-    def __init__(self, name: str, reg_type: RegisterType, address: int,
-                 value_type: RegisterValueType, bits: Optional[BitsArray]) -> None:
+    def __init__(
+        self,
+        name: str,
+        reg_type: RegisterType,
+        address: int,
+        value_type: RegisterValueType,
+        bits: Optional[BitsArray],
+    ) -> None:
         super().__init__(address, struct.calcsize(get_type_format(value_type)[0]) // 2)
         self.name = name
         self.reg_type = reg_type
@@ -54,8 +65,13 @@ class IRegister(AddressRange):
         type_format, reverse, _ = get_type_format(self.value_type)
         count = struct.calcsize(type_format) // 2
 
-        registers_unordered = [read_session.registers_dict[(self.reg_type, self.address + i)] for i in range(count)]
-        registers_ordered = registers_unordered if not reverse else reversed(registers_unordered)
+        registers_unordered = [
+            read_session.registers_dict[(self.reg_type, self.address + i)]
+            for i in range(count)
+        ]
+        registers_ordered = (
+            registers_unordered if not reverse else reversed(registers_unordered)
+        )
         value_bytes = struct.pack("<" + "H" * count, *registers_ordered)
         val = cast(int, struct.unpack("<" + type_format, value_bytes)[0])
 
@@ -71,20 +87,38 @@ class IRegister(AddressRange):
         raw_value = value_type(value)
         value_bytes = struct.pack("<" + type_format, raw_value)
         registers_unordered = list(struct.unpack("<" + "H" * count, value_bytes))
-        registers_ordered = registers_unordered if not reverse else list(reversed(registers_unordered))
+        registers_ordered = (
+            registers_unordered if not reverse else list(reversed(registers_unordered))
+        )
 
         return registers_ordered
 
 
 class NumericRegister(IRegister):
-    def __init__(self, name: str, reg_type: RegisterType, address: int,
-                 value_type: RegisterValueType = RegisterValueType.U16, *, bits: Optional[BitsArray] = None,
-                 scale: Union[int, float] = 1, unit: Optional[str] = None) -> None:
-        super().__init__(name=name, reg_type=reg_type, address=address, value_type=value_type, bits=bits)
+    def __init__(
+        self,
+        name: str,
+        reg_type: RegisterType,
+        address: int,
+        value_type: RegisterValueType = RegisterValueType.U16,
+        *,
+        bits: Optional[BitsArray] = None,
+        scale: Union[int, float] = 1,
+        unit: Optional[str] = None,
+    ) -> None:
+        super().__init__(
+            name=name,
+            reg_type=reg_type,
+            address=address,
+            value_type=value_type,
+            bits=bits,
+        )
         self.scale = scale
         self.unit = unit
 
-    def get_value_from_read_session(self, read_session: ModbusReadSession) -> Union[int, float]:
+    def get_value_from_read_session(
+        self, read_session: ModbusReadSession
+    ) -> Union[int, float]:
         num = super().get_raw_from_read_session(read_session)
         return num * self.scale
 
@@ -141,10 +175,16 @@ TEnumRegisterEnumCls = TypeVar("TEnumRegisterEnumCls")
 #
 #         pass
 
+
 class Coil(IRegister):
     def __init__(self, name: str, reg_type: RegisterType, number: int) -> None:
-        super().__init__(name=name, reg_type=reg_type, address=number // 8 * 8, value_type=RegisterValueType.U16,
-                         bits=None)
+        super().__init__(
+            name=name,
+            reg_type=reg_type,
+            address=number // 8 * 8,
+            value_type=RegisterValueType.U16,
+            bits=None,
+        )
         self.count = 8
         self.number = number
 
@@ -160,8 +200,6 @@ class Coil(IRegister):
 
 __all__ = [
     "RegisterType",
-
     "IRegister",
-
     "NumericRegister",
 ]

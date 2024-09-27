@@ -1,17 +1,14 @@
 import asyncio
 import concurrent
 import functools
+from collections.abc import Awaitable, Callable
+from typing import Any, List, Optional, TypeVar, cast
+
 import pymodbus.client
 
-from collections.abc import Awaitable, Callable
-from modbus_client.client.exceptions import (
-    ReadErrorException,
-    WriteErrorException,
-)
-from modbus_client.client.constants import Defaults
 from modbus_client.client.base_client import AsyncModbusBaseClient
-from typing import Any, cast, List, Optional, TypeVar
-
+from modbus_client.client.constants import Defaults
+from modbus_client.client.exceptions import ReadErrorException, WriteErrorException
 
 T = TypeVar("T")
 
@@ -53,9 +50,7 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
         slave: int = Defaults.slave,
     ) -> List[bool]:
         bytes_count = (count + 7) // 8
-        result = await self._run(
-            self.client.read_coils, address, bytes_count, slave
-        )
+        result = await self._run(self.client.read_coils, address, bytes_count, slave)
         if result.isError() or result.byte_count != bytes_count:
             raise ReadErrorException(result)
         return cast(List[bool], result.bits[:count])
@@ -112,13 +107,9 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
     ) -> None:
         c = self.client
         if len(values) == 1:
-            result = await self._run(
-                c.write_register, address, values[0], slave
-            )
+            result = await self._run(c.write_register, address, values[0], slave)
         else:
-            result = await self._run(
-                c.write_registers, address, values, slave
-            )
+            result = await self._run(c.write_registers, address, values, slave)
         if result.isError():
             raise WriteErrorException(result)
 
@@ -130,19 +121,13 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
 
 
 class ModbusTcpClient(AsyncModbusPyModbusClient):
-    def __init__(
-        self, host: str, port: int = Defaults.tcpport, **kwargs: Any
-    ) -> None:
+    def __init__(self, host: str, port: int = Defaults.tcpport, **kwargs: Any) -> None:
         super().__init__(pymodbus.client.ModbusTcpClient(host, port, **kwargs))
 
 
 class AsyncModbusTcpClient(AsyncModbusPyModbusClient):
-    def __init__(
-        self, host: str, port: int = Defaults.tcpport, **kwargs: Any
-    ) -> None:
-        super().__init__(
-            pymodbus.client.AsyncModbusTcpClient(host, port, **kwargs)
-        )
+    def __init__(self, host: str, port: int = Defaults.tcpport, **kwargs: Any) -> None:
+        super().__init__(pymodbus.client.AsyncModbusTcpClient(host, port, **kwargs))
 
 
 class ModbusSerialClient(AsyncModbusPyModbusClient):
@@ -152,15 +137,11 @@ class ModbusSerialClient(AsyncModbusPyModbusClient):
         baudrate: int = Defaults.baudrate,
         stopbits: int = Defaults.stopbits,
         parity: str = Defaults.parity,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             pymodbus.client.ModbusSerialClient(
-                port,
-                baudrate=baudrate,
-                stopbits=stopbits,
-                parity=parity,
-                **kwargs
+                port, baudrate=baudrate, stopbits=stopbits, parity=parity, **kwargs
             )
         )
 
@@ -172,15 +153,11 @@ class AsyncModbusSerialClient(AsyncModbusPyModbusClient):
         baudrate: int = Defaults.baudrate,
         stopbits: int = Defaults.stopbits,
         parity: str = Defaults.parity,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super().__init__(
             pymodbus.client.AsyncModbusSerialClient(
-                port,
-                baudrate=baudrate,
-                stopbits=stopbits,
-                parity=parity,
-                **kwargs
+                port, baudrate=baudrate, stopbits=stopbits, parity=parity, **kwargs
             )
         )
 

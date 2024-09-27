@@ -1,8 +1,8 @@
-from . import (  # noqa: F401
+from . import (
     address_range,
     base_client,
     client,
-    exceptions,
+    exceptions,  # noqa: F401
     registers,
-    types
+    types,
 )

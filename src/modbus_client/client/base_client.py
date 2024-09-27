@@ -1,23 +1,12 @@
 from abc import abstractmethod
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-from modbus_client.client.address_range import (
-    AddressRange,
-    merge_address_ranges,
-)
+from typing import Any, Dict, Generic, List, Literal, Sequence, TypeVar
+
+from modbus_client.client.address_range import AddressRange, merge_address_ranges
 from modbus_client.client.constants import Defaults
 from modbus_client.client.registers import IRegister, RegisterType
 from modbus_client.client.types import ModbusReadSession
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    List,
-    Literal,
-    Sequence,
-    TypeVar,
-)
-
 
 T = TypeVar("T")
 
@@ -139,9 +128,7 @@ class ReadDiscreteInputsRequest(Request[List[int]]):
     slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
-        return await client.read_discrete_inputs(
-            self.address, self.count, self.slave
-        )
+        return await client.read_discrete_inputs(self.address, self.count, self.slave)
 
 
 @dataclass
@@ -151,9 +138,7 @@ class ReadInputRegistersRequest(Request[List[int]]):
     slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
-        return await client.read_input_registers(
-            self.address, self.count, self.slave
-        )
+        return await client.read_input_registers(self.address, self.count, self.slave)
 
 
 @dataclass
@@ -163,9 +148,7 @@ class ReadHoldingRegistersRequest(Request[List[int]]):
     slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
-        return await client.read_holding_registers(
-            self.address, self.count, self.slave
-        )
+        return await client.read_holding_registers(self.address, self.count, self.slave)
 
 
 @dataclass
@@ -175,9 +158,7 @@ class WriteHoldingRegistersRequest(Request[None]):
     slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> None:
-        await client.write_holding_registers(
-            self.address, self.values, self.slave
-        )
+        await client.write_holding_registers(self.address, self.values, self.slave)
 
 
 @dataclass
@@ -192,8 +173,7 @@ class ReadRegistersRequest(Request[ModbusReadSession]):
 
         for reg_type in RegisterType:
             discrete_reg = (
-                reg_type == RegisterType.Coil
-                or reg_type == RegisterType.DiscreteInputs
+                reg_type == RegisterType.Coil or reg_type == RegisterType.DiscreteInputs
             )
             self.buckets[reg_type] = merge_address_ranges(
                 [x for x in self.registers if x.reg_type == reg_type],
@@ -201,9 +181,7 @@ class ReadRegistersRequest(Request[ModbusReadSession]):
                 max_read_size=1 if discrete_reg else self.max_read_size,
             )
 
-    async def execute(
-        self, client: AsyncModbusBaseClient
-    ) -> ModbusReadSession:
+    async def execute(self, client: AsyncModbusBaseClient) -> ModbusReadSession:
         read_functions: Dict[
             RegisterType,
             Callable[..., Coroutine[Any, Any, List[bool] | List[int]]],
