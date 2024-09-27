@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Tuple, Union
+from typing import Union
 
 
 class RegisterType(Enum):
@@ -26,7 +26,7 @@ RegisterValue = Union[int, bool]
 
 @dataclass
 class ModbusReadSession:
-    registers_dict: Dict[Tuple[RegisterType, int], RegisterValue] = field(
+    registers_dict: dict[tuple[RegisterType, int], RegisterValue] = field(
         default_factory=dict
     )
 

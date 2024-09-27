@@ -1,6 +1,6 @@
 import struct
 from abc import abstractmethod
-from typing import Any, Callable, List, Optional, Tuple, TypeVar, Union, cast
+from typing import Any, Callable, Optional, TypeVar, Union, cast
 
 from modbus_client.client.address_range import AddressRange
 from modbus_client.client.types import (
@@ -9,12 +9,12 @@ from modbus_client.client.types import (
     RegisterValueType,
 )
 
-BitsArray = List[int]
+BitsArray = list[int]
 
 
 def get_type_format(
     reg_type: RegisterValueType,
-) -> Tuple[str, bool, Callable[[Any], Union[int, float]]]:
+) -> tuple[str, bool, Callable[[Any], Union[int, float]]]:
     if reg_type == RegisterValueType.S16:
         return "h", False, round
     elif reg_type == RegisterValueType.U16:
@@ -80,7 +80,7 @@ class IRegister(AddressRange):
         else:
             return get_bits(val, self.bits)
 
-    def value_to_modbus_registers(self, value: Union[int, float]) -> List[int]:
+    def value_to_modbus_registers(self, value: Union[int, float]) -> list[int]:
         type_format, reverse, value_type = get_type_format(self.value_type)
         count = struct.calcsize(type_format) // 2
 
@@ -122,7 +122,7 @@ class NumericRegister(IRegister):
         num = super().get_raw_from_read_session(read_session)
         return num * self.scale
 
-    def value_to_modbus_registers(self, value: Union[int, float]) -> List[int]:
+    def value_to_modbus_registers(self, value: Union[int, float]) -> list[int]:
         return super().value_to_modbus_registers(value / self.scale)
 
     def format(self, read_session: ModbusReadSession) -> str:

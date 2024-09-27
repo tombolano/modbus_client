@@ -2,7 +2,7 @@ import asyncio
 import concurrent
 import functools
 from collections.abc import Awaitable, Callable
-from typing import Any, List, Optional, TypeVar, cast
+from typing import Any, Optional, TypeVar, cast
 
 import pymodbus.client
 
@@ -48,19 +48,19 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> List[bool]:
+    ) -> list[bool]:
         bytes_count = (count + 7) // 8
         result = await self._run(self.client.read_coils, address, bytes_count, slave)
         if result.isError() or result.byte_count != bytes_count:
             raise ReadErrorException(result)
-        return cast(List[bool], result.bits[:count])
+        return cast(list[bool], result.bits[:count])
 
     async def read_discrete_inputs(
         self,
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> List[int]:
+    ) -> list[int]:
         result = await self._run(
             self.client.read_discrete_inputs, address, count, slave
         )
@@ -81,29 +81,29 @@ class AsyncModbusPyModbusClient(AsyncModbusBaseClient):
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> List[int]:
+    ) -> list[int]:
         result = await self._run(
             self.client.read_input_registers, address, count, slave
         )
         if result.isError() or len(result.registers) != count:
             raise ReadErrorException(result)
-        return cast(List[int], result.registers)
+        return cast(list[int], result.registers)
 
     async def read_holding_registers(
         self,
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> List[int]:
+    ) -> list[int]:
         result = await self._run(
             self.client.read_holding_registers, address, count, slave
         )
         if result.isError() or len(result.registers) != count:
             raise ReadErrorException(result)
-        return cast(List[int], result.registers)
+        return cast(list[int], result.registers)
 
     async def write_holding_registers(
-        self, address: int, values: List[int], slave: int = Defaults.slave
+        self, address: int, values: list[int], slave: int = Defaults.slave
     ) -> None:
         c = self.client
         if len(values) == 1:

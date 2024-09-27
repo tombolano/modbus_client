@@ -2,7 +2,7 @@ import io
 import re
 from dataclasses import field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Optional, Union, cast
 
 import yaml
 from pydantic import StrictFloat, StrictInt, validator
@@ -25,7 +25,7 @@ class IDeviceRegister:
     unit: Optional[str] = None
 
 
-def parse_register_def(reg_def: str) -> Optional[Dict[str, Any]]:
+def parse_register_def(reg_def: str) -> Optional[dict[str, Any]]:
     # name/0x002a/float32be*0.1[unit]
     m = re.match(
         r"^([a-zA-Z0-9_]+)/(.+)/([^*\[]+)(?:\*(?P<scale>[0-9.]+))?(?:\[(?P<unit>.+)])?$",
@@ -92,15 +92,15 @@ class DeviceSwitch:
 
 @dataclass
 class DeviceRegisters:
-    input_registers: List[DeviceInputRegister] = field(default_factory=list)
-    holding_registers: List[DeviceHoldingRegister] = field(default_factory=list)
+    input_registers: list[DeviceInputRegister] = field(default_factory=list)
+    holding_registers: list[DeviceHoldingRegister] = field(default_factory=list)
 
     @validator("input_registers", pre=True, allow_reuse=False)
-    def _input_registers(cls, v: Any) -> List[Any]:
+    def _input_registers(cls, v: Any) -> list[Any]:
         return [(DeviceInputRegister.parse(x) if isinstance(x, str) else x) for x in v]
 
     @validator("holding_registers", pre=True, allow_reuse=False)
-    def _holding_registers(cls, v: Any) -> List[Any]:
+    def _holding_registers(cls, v: Any) -> list[Any]:
         return [
             (DeviceHoldingRegister.parse(x) if isinstance(x, str) else x) for x in v
         ]
@@ -110,7 +110,7 @@ class DeviceRegisters:
 class DeviceConfig:
     zero_mode: bool
     registers: DeviceRegisters
-    switches: List[DeviceSwitch] = field(default_factory=list)
+    switches: list[DeviceSwitch] = field(default_factory=list)
 
     def find_register(self, name: str) -> Optional[IDeviceRegister]:
         for reg in self.get_all_registers():
@@ -124,7 +124,7 @@ class DeviceConfig:
                 return switch
         return None
 
-    def get_all_registers(self) -> List[IDeviceRegister]:
+    def get_all_registers(self) -> list[IDeviceRegister]:
         return [*self.registers.holding_registers, *self.registers.input_registers]
 
 

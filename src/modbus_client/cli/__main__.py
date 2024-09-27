@@ -3,7 +3,7 @@ import asyncio
 import datetime
 import os
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Callable, Optional, Sequence, Union, cast
 
 from modbus_client.cli.argument_parsers import (
     ModeTupleType,
@@ -34,7 +34,7 @@ from modbus_client.device.modbus_device import (
 script_dir = os.path.dirname(os.path.realpath(__file__))
 root_dir = os.path.join(script_dir, "..")
 
-DeviceCreationResult = Tuple[ModbusDevice, int, AsyncModbusClient]
+DeviceCreationResult = tuple[ModbusDevice, int, AsyncModbusClient]
 
 
 @dataclass
@@ -98,8 +98,8 @@ async def query_device(
     device_config: DeviceConfig,
     client: AsyncModbusClient,
     unit: int,
-    registers: Optional[List[IDeviceRegister]] = None,
-    switches: Optional[List[DeviceSwitch]] = None,
+    registers: Optional[list[IDeviceRegister]] = None,
+    switches: Optional[list[DeviceSwitch]] = None,
     show_register_names: bool = False,
     show_registers_types: bool = False,
     interval: Optional[float] = None,
@@ -110,10 +110,10 @@ async def query_device(
         switches = []
     holding_registers = [x for x in registers if isinstance(x, DeviceHoldingRegister)]
     input_registers = [x for x in registers if isinstance(x, DeviceInputRegister)]
-    all_registers: List[Union[IDeviceRegister, DeviceSwitch]] = [*registers, *switches]
+    all_registers: list[Union[IDeviceRegister, DeviceSwitch]] = [*registers, *switches]
     max_name_len = max(len(x.name) for x in all_registers)
 
-    modbus_registers_map: Dict[str, IRegister] = {}
+    modbus_registers_map: dict[str, IRegister] = {}
     modbus_registers_map.update(
         {
             register.name: create_modbus_register(device_config, register)

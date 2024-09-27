@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Sequence
+from typing import Optional, Sequence
 
 
 @dataclass
@@ -18,8 +18,8 @@ class AddressRange:
 
 def merge_address_ranges(
     registers: Sequence[AddressRange], allow_holes: bool, max_read_size: int
-) -> List[AddressRange]:
-    buckets: List[AddressRange] = []
+) -> list[AddressRange]:
+    buckets: list[AddressRange] = []
     cur_rng: Optional[AddressRange] = None
 
     for register in sorted(registers, key=lambda x: (x.address, -x.count)):

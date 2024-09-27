@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-from typing import Any, Dict, Generic, List, Literal, Sequence, TypeVar
+from typing import Any, Generic, Literal, Sequence, TypeVar
 
 from modbus_client.client.address_range import AddressRange, merge_address_ranges
 from modbus_client.client.constants import Defaults
@@ -38,7 +38,7 @@ class AsyncModbusBaseClient:
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> List[bool]:
+    ) -> list[bool]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -47,7 +47,7 @@ class AsyncModbusBaseClient:
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> List[int]:
+    ) -> list[int]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -56,7 +56,7 @@ class AsyncModbusBaseClient:
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> List[int]:
+    ) -> list[int]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -65,12 +65,12 @@ class AsyncModbusBaseClient:
         address: int,
         count: int = Defaults.count,
         slave: int = Defaults.slave,
-    ) -> List[int]:
+    ) -> list[int]:
         raise NotImplementedError()
 
     @abstractmethod
     async def write_holding_registers(
-        self, address: int, values: List[int], slave: int = Defaults.slave
+        self, address: int, values: list[int], slave: int = Defaults.slave
     ) -> None:
         raise NotImplementedError()
 
@@ -111,50 +111,50 @@ class WriteCoilRequest(Request[None]):
 
 
 @dataclass
-class ReadCoilsRequest(Request[List[bool]]):
-    T = List[bool]
+class ReadCoilsRequest(Request[list[bool]]):
+    T = list[bool]
     address: int
     count: int = Defaults.count
     slave: int = Defaults.slave
 
-    async def execute(self, client: AsyncModbusBaseClient) -> List[bool]:
+    async def execute(self, client: AsyncModbusBaseClient) -> list[bool]:
         return await client.read_coils(self.address, self.count, self.slave)
 
 
 @dataclass
-class ReadDiscreteInputsRequest(Request[List[int]]):
+class ReadDiscreteInputsRequest(Request[list[int]]):
     address: int
     count: int = Defaults.count
     slave: int = Defaults.slave
 
-    async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
+    async def execute(self, client: AsyncModbusBaseClient) -> list[int]:
         return await client.read_discrete_inputs(self.address, self.count, self.slave)
 
 
 @dataclass
-class ReadInputRegistersRequest(Request[List[int]]):
+class ReadInputRegistersRequest(Request[list[int]]):
     address: int
     count: int = Defaults.count
     slave: int = Defaults.slave
 
-    async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
+    async def execute(self, client: AsyncModbusBaseClient) -> list[int]:
         return await client.read_input_registers(self.address, self.count, self.slave)
 
 
 @dataclass
-class ReadHoldingRegistersRequest(Request[List[int]]):
+class ReadHoldingRegistersRequest(Request[list[int]]):
     address: int
     count: int = Defaults.count
     slave: int = Defaults.slave
 
-    async def execute(self, client: AsyncModbusBaseClient) -> List[int]:
+    async def execute(self, client: AsyncModbusBaseClient) -> list[int]:
         return await client.read_holding_registers(self.address, self.count, self.slave)
 
 
 @dataclass
 class WriteHoldingRegistersRequest(Request[None]):
     address: int
-    values: List[int]
+    values: list[int]
     slave: int = Defaults.slave
 
     async def execute(self, client: AsyncModbusBaseClient) -> None:
@@ -169,7 +169,7 @@ class ReadRegistersRequest(Request[ModbusReadSession]):
     max_read_size: int = Defaults.allow_holes
 
     def __post_init__(self) -> None:
-        self.buckets: Dict[RegisterType, List[AddressRange]] = {}
+        self.buckets: dict[RegisterType, list[AddressRange]] = {}
 
         for reg_type in RegisterType:
             discrete_reg = (
@@ -182,9 +182,9 @@ class ReadRegistersRequest(Request[ModbusReadSession]):
             )
 
     async def execute(self, client: AsyncModbusBaseClient) -> ModbusReadSession:
-        read_functions: Dict[
+        read_functions: dict[
             RegisterType,
-            Callable[..., Coroutine[Any, Any, List[bool] | List[int]]],
+            Callable[..., Coroutine[Any, Any, list[bool] | list[int]]],
         ] = {
             RegisterType.Coil: client.read_coils,
             RegisterType.DiscreteInputs: client.read_discrete_inputs,

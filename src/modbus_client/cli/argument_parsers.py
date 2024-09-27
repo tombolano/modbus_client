@@ -1,8 +1,8 @@
 import argparse
 import re
-from typing import Any, Tuple
+from typing import Any
 
-ModeTupleType = Tuple[int, str, int]
+ModeTupleType = tuple[int, str, int]
 
 
 def mode_parser(arg_value: Any) -> ModeTupleType:

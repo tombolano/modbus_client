@@ -1,5 +1,4 @@
 import unittest
-from typing import List, Tuple
 
 from modbus_client.client.address_range import AddressRange, merge_address_ranges
 
@@ -8,8 +7,8 @@ from modbus_client.client.address_range import AddressRange, merge_address_range
 class AddressRangesTest(unittest.TestCase):
     def _test_range(
         self,
-        expected_output: List[Tuple[int, int]],
-        ranges: List[Tuple[int, int]],
+        expected_output: list[tuple[int, int]],
+        ranges: list[tuple[int, int]],
         allow_holes: bool,
         max_read_size: int = 10,
     ) -> None:
