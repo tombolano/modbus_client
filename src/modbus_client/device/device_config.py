@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Any, Optional, Union, cast
 
 import yaml
-from pydantic import StrictFloat, StrictInt, validator
+from pydantic import StrictFloat, StrictInt, field_validator
 from pydantic.dataclasses import dataclass
 
 from modbus_client.client.types import RegisterValueType
@@ -95,11 +95,11 @@ class DeviceRegisters:
     input_registers: list[DeviceInputRegister] = field(default_factory=list)
     holding_registers: list[DeviceHoldingRegister] = field(default_factory=list)
 
-    @validator("input_registers", pre=True, allow_reuse=False)
+    @field_validator("input_registers", mode='before')
     def _input_registers(cls, v: Any) -> list[Any]:
         return [(DeviceInputRegister.parse(x) if isinstance(x, str) else x) for x in v]
 
-    @validator("holding_registers", pre=True, allow_reuse=False)
+    @field_validator("holding_registers", mode='before')
     def _holding_registers(cls, v: Any) -> list[Any]:
         return [
             (DeviceHoldingRegister.parse(x) if isinstance(x, str) else x) for x in v
